@@ -246,7 +246,7 @@ const SPSongType = new GraphQLObjectType({
       type: GraphQLString,
       resolve: track => track.name
     },
-    spotifyId: {
+    id: {
       type: GraphQLString,
       resolve: track => track.id
     },
@@ -425,7 +425,7 @@ const axiosConfigForRapGenius = {
 
 const config = {
   headers: {
-    'Authorization' : 'Bearer BQBU65lifRvf3JspvL6OZs65Dx2yUH_7j9AJ8bJimsDMdhkNN_KuuhOND-E1B2RgUkulZBCqT8GPOFErwSs'
+    'Authorization' : 'Bearer BQCC7PQvNzkoBjdu-xQO3PDGepGoxFOdTNxKdvRubsQhLyfdclGhWO-Ch7cncswuKSZKg8qISqpOMHUxjos'
   }
 }
 
@@ -473,7 +473,10 @@ module.exports = new GraphQLSchema({
         },
         resolve: (root, args) => {
           return axios.get(`https://api.spotify.com/v1/tracks/${args.id}`, config)
-          .then((res) => res.data)
+          .then((res) => {
+            // console.log('song data: ', res.data)
+            return res.data
+          })
         }
       },
       autocomplete: {
@@ -484,7 +487,7 @@ module.exports = new GraphQLSchema({
           }
         },
         resolve: (root, args) => {
-          return axios.get(`https://api.spotify.com/v1/search?q=${args.q}&type=track,album,artist`, config)
+          return axios.get(`https://api.spotify.com/v1/search?q=${args.q}&type=track,album,artist&limit=7`, config)
           .then((res) => {
             var songs = res.data.tracks.items;
             var albums = res.data.albums.items;
@@ -493,7 +496,6 @@ module.exports = new GraphQLSchema({
             albums.forEach(alb => alb['attr'] = 'album')
             artists.forEach(art => art['attr'] = 'artist')
             var output = songs.concat(artists).concat(albums);
-            console.log('auto: ', output[0])
             return output
           })
         }

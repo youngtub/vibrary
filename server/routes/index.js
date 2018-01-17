@@ -8,8 +8,10 @@ const artistRoutes = require('./artistRoutes.js');
 const albumRoutes = require('./albumRoutes.js');
 const collabRoutes = require('./collabRoutes.js');
 
-router.post('/newSong', (req, res) => {
-  res.send('New song')
-});
+router.post('/newSong', songRoutes.addSong);
+
+router.get('/allSongs', songRoutes.allSongs);
+
+router.get('/similarVibe', songRoutes.similarVibe)
 
 module.exports = router;

@@ -5,15 +5,12 @@ const Section = require('./sectionModel.js');
 
 const Segment = inthestudio.define('segment', {
   start: Sequelize.FLOAT,
-  end: Sequelize.FLOAT,
   duration: Sequelize.FLOAT,
   timbre: Sequelize.ARRAY(Sequelize.FLOAT),
-  pitches: Sequelize.ARRAY(Sequelize.FLOAT),
-  loudness_start: Sequelize.FLOAT,
-  loudness_max: Sequelize.FLOAT
+  pitches: Sequelize.ARRAY(Sequelize.FLOAT)
 });
 
-Segment.belongsTo(Section)
+Segment.belongsTo(Song)
 
 Segment.sync({force: false});
 
