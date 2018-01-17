@@ -7,6 +7,7 @@ import * as ChangeActions from '../actions';
 import rootReducer from '../reducers/index.js';
 //router
 import { Route, Switch, withRouter } from 'react-router-dom';
+import {Grid, Row, Col} from 'react-bootstrap';
 
 class App extends React.Component {
   constructor(props) {
@@ -17,7 +18,7 @@ class App extends React.Component {
   }
 
   componentWillReceiveProps(){
-    console.log('props', this.props)
+    // console.log('props', this.props)
   }
 
   handleChange = (e) => {
@@ -31,13 +32,8 @@ class App extends React.Component {
 
   render() {
     return (
-      <div>
-        <p>Hi From App</p>
-        <form>
-          <input value={this.state.val}
-                 onChange={this.handleChange}></input>
-        </form>
-      </div>
+      <Grid fluid={true}>
+      </Grid>
     )
   }
 }
