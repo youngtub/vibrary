@@ -6,6 +6,8 @@ const Song = require('../db/models/songModel.js');
 const Section = require('../db/models/sectionModel.js');
 const Segment = require('../db/models/segmentModel.js');
 const Artist = require('../db/models/artistModel.js');
+const Collab = require('../db/models/collabModel.js');
+const Album = require('../db/models/albumModel.js');
 const PCA = require('ml-pca');
 
 exports.explore = (req, res) => {
@@ -128,7 +130,7 @@ exports.allSongs = (req, res) => {
   return Song.findAll({})
   .then((songs) => {
     var titles = songs.reduce((acc, curr) => {acc.push(curr.title); return acc;}, []);
-    console.log('Titles ', titles)
+    // console.log('Titles ', titles)
     return res.send(songs)
   })
 }
@@ -215,7 +217,14 @@ exports.addSong = (req, res) => {
           .then((addedSegs) => {
             return Promise.all(allArtists.map(addArtist))
             .then((addedArts) => {
-              res.send(newSong)
+              var songId = newSong.id;
+              return Promise.all(addedArts.map(a => addCollab(songId, a.dataValues.id)))
+              .then((allCollabs) => {
+                return addAlbum(albumName, albumId, allArtists, released)
+                .then((alb) => {
+                  res.send(newSong)
+                })
+              })
             })
           })
         })
@@ -226,6 +235,32 @@ exports.addSong = (req, res) => {
   })
   res.send('ok')
 };
+
+const addAlbum = (albName, spid, artists, date) => {
+  var allArtistsNames = artists.reduce((acc, curr) => {acc.push(curr.name); return acc;},[])
+  return Album.findOne({where:{name: albName}})
+  .then((alb) => {
+    if(!alb) {
+      return Album.create({name:albName,spid,artists:allArtistsNames, date})
+    } else {
+      var oldArtists = alb.dataValues.artists;
+      var combinedArtists = oldArtists.slice();
+      artists.forEach(a => {
+        if(!combinedArtists.includes(a.name)) combinedArtists.push(a.name)
+      })
+      return Album.update({
+        artists: combinedArtists,
+      }, {
+        where: {name: albName}
+      })
+    }
+  })
+  .catch((err)=>console.log('album error: ', err))
+}
+
+const addCollab = (songId, artistId) => {
+  return Collab.create({songId,artistId})
+}
 
 const addArtist = (artist) => {
   return Artist.findOne({where:{name: artist.name}})
@@ -246,6 +281,8 @@ const addArtist = (artist) => {
         role: artist.role,
         rgid: artist.rgid
       })
+    } else {
+      return art
     }
   })
 }

@@ -23,13 +23,13 @@ class Add extends React.Component {
       console.log('res in front: ', res.data);
       var sugs = res.data.data.autocomplete;
       if (!sugs || sugs === null) sugs = []
-      this.setState({sugs})
+      this.setState({sugs, added:[]})
     })
   };
 
-  selectSong = (song) => {
+  selectSong = (song, ind) => {
     var newCheck = this.state.added.slice();
-    newCheck.push(song.title)
+    newCheck.push(ind)
     this.setState({added:newCheck})
     let id = song.id;
     var params = {id}
@@ -48,8 +48,8 @@ class Add extends React.Component {
     })
   };
 
-  iconSelect = (title) => {
-    if(this.state.added.includes(title)) return 'checkmark'
+  iconSelect = (ind) => {
+    if(this.state.added.includes(ind)) return 'checkmark'
     return 'plus square outline'
   }
 
@@ -67,7 +67,7 @@ class Add extends React.Component {
                 {item.attr !== 'artist' ? item.artists.join(',') : ''}
               </Col>
               <Col md={4}>
-                <Button icon={this.iconSelect(item.title)} onClick={()=>this.selectSong(item)} />
+                <Button icon={this.iconSelect(i)} onClick={()=>this.selectSong(item, i)} />
               </Col>
               <br/><br/><br/>
             </Row>

@@ -355,7 +355,7 @@ const SPSongType = new GraphQLObjectType({
     title: {
       type: GraphQLString,
       resolve: track => {
-        console.log('sp data: ', track)
+        // console.log('sp data: ', track)
         return track.name
       }
     },
@@ -425,7 +425,10 @@ const SPSongType = new GraphQLObjectType({
       type: RGSongType,
       resolve: res => {
         var songName = res.name.replace(/ /g, '+');
-        return axios.get(`http://api.genius.com/search/songs?q=${songName}`, axiosConfigForRapGenius)
+        var artistsString = res.artists.reduce((acc, curr) => {acc.push(curr.name); return acc;}, []);
+        var q = songName + ' ' + artistsString.join(' ');
+        // console.log('Q: ', q)
+        return axios.get(`http://api.genius.com/search/songs?q=${q}`, axiosConfigForRapGenius)
         .then((res) => {
           // console.log('DATA', res.data.response.sections[0].hits[0].result)
           return res.data.response.sections[0].hits[0].result
@@ -564,7 +567,7 @@ const axiosConfigForRapGenius = {
 
 const config = {
   headers: {
-    'Authorization' : 'Bearer BQCYREEepndxq0xhSRB8KKFCpfvMoHMt-jKxTRig6xkooNs054A101XmpvM4hLDNYuI4FcEn6R4OwkBWFjY'
+    'Authorization' : 'Bearer BQABSHIdVsity4rTPjTcVxpb-tzLu6GMaiOVwRYBhGi2z1j-tb6or0fvEK2Bm4Z5ycDqBOY7mho89YcscIU'
   }
 }
 

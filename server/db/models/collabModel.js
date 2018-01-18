@@ -1,13 +1,14 @@
 const Sequelize = require('sequelize');
 const inthestudio = require('../../db').inthestudio;
+const Song = require('./songModel.js');
+const Artist = require('./artistModel.js');
 
 const Collab = inthestudio.define('collab', {
-  sourceID: Sequelize.INTEGER,
-  sourceName: Sequelize.STRING,
-  targetID: Sequelize.INTEGER,
-  targetName: Sequelize.STRING,
-  songList: Sequelize.ARRAY(Sequelize.INTEGER)
+
 });
+
+Collab.belongsTo(Song);
+Collab.belongsTo(Artist);
 
 Collab.sync({force: false});
 
