@@ -11,6 +11,7 @@ import {Button} from 'semantic-ui-react';
 
 import Add from './Add.jsx';
 import Browse from './Browse.jsx';
+import Panel from './Panel.jsx';
 
 class App extends React.Component {
   constructor(props) {
@@ -24,33 +25,30 @@ class App extends React.Component {
     // console.log('props', this.props)
   }
 
-  handleChange = (e) => {
-    this.setState({
-      val: e.target.value
-    }, () => {
-      console.log('val in state', this.state.val)
-      this.props.actions.test(this.state)
-    })
-  }
-
   render() {
     return (
       <Grid fluid={true}>
         <Row>
-          <Col md={9}>
+          <Col md={10}>
             <h2>Vibrary</h2>
           </Col>
-          <Col md={3} style={navStyle}>
+          <Col md={2} style={navStyle}>
+            <br/>
             <Button href='/add'>Add</Button>
             <Button href='/browse'>Browse</Button>
           </Col>
         </Row>
         <hr/>
         <Row>
-          <Switch>
-            <Route exact path = '/add' component={Add}/>
-            <Route exact path = '/browse' component={Browse} />
-          </Switch>
+          <Col md={9}>
+            <Switch>
+              <Route exact path = '/add' component={Add}/>
+              <Route exact path = '/browse' component={Browse} />
+            </Switch>
+          </Col>
+          <Col md={3}>
+            <Panel selected={this.props.selected} />
+          </Col>
         </Row>
       </Grid>
     )
@@ -63,6 +61,7 @@ const navStyle = {
 
 const mapStateToProps = (state) => ({
   test: state.TEST,
+  selected: state.selected
 });
 
 const mapDispatchToProps = (dispatch) => ({

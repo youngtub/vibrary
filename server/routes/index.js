@@ -12,6 +12,6 @@ router.post('/newSong', songRoutes.addSong);
 
 router.get('/allSongs', songRoutes.allSongs);
 
-router.get('/similarVibe', songRoutes.similarVibe)
+router.get('/similarVibe', songRoutes.similarVibePCA)
 
 module.exports = router;

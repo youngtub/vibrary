@@ -5,12 +5,58 @@ const inthestudio = db.inthestudio;
 const Song = require('../db/models/songModel.js');
 const Section = require('../db/models/sectionModel.js');
 const Segment = require('../db/models/segmentModel.js');
+const Artist = require('../db/models/artistModel.js');
+const PCA = require('ml-pca');
+
+exports.similarVibePCA = (req, res) => {
+  var title = req.query.title;
+  var mainSong;
+  return Song.findOne({where:{title}})
+  .then((theSong) => {
+    var selVibe = theSong.dataValues.vibe;
+    mainSong = theSong.dataValues;
+    return Song.findAll({
+      where: {
+        title: {
+          [Op.not]: title
+        }
+      }
+    })
+    .then((allS) => {
+      var all = allS.reduce((acc, curr) => {acc.push(curr.dataValues); return acc;}, [])
+      var allVibes = allS.reduce((acc, curr) => {acc.push(curr.dataValues.vibe); return acc;}, [])
+      var pcaVibes = new PCA(allVibes);
+      allVibes.unshift(selVibe);
+      var variance = pcaVibes.predict(allVibes);
+      console.log('variance: ', variance.length);
+      var mainVec = variance.shift();
+      mainSong['vec'] = mainVec;
+      var maxDel = 0;
+      variance.forEach((vec, i) => {
+        var totalDev = 0;
+        for (let i = 0; i < 12; i++) {
+          var currDev = Math.abs(mainVec[i] - vec[i])
+          totalDev += currDev;
+        }
+        all[i]['vec'] = vec;
+        all[i]['del'] = totalDev;
+        if(totalDev > maxDel) maxDel = totalDev
+      })
+      all.forEach(s => {
+        s['percDev'] = Math.floor((1 - s.del / maxDel)*100);
+      })
+      all.sort((a, b) => a.del - b.del)
+      res.send(all)
+    })
+  })
+}
 
 exports.similarVibe = (req, res) => {
   var title = req.query.title;
   return Song.findOne({where:{title}})
   .then((theSong) => {
     var selVibe = theSong.dataValues.vibe;
+    // const pcaSelVibe = new PCA(selVibe);
     return Song.findAll({
       where: {
         title: {
@@ -42,16 +88,49 @@ exports.similarVibe = (req, res) => {
 
 exports.allSongs = (req, res) => {
   return Song.findAll({})
-  .then((songs) => res.send(songs))
+  .then((songs) => {
+    var titles = songs.reduce((acc, curr) => {acc.push(curr.title); return acc;}, []);
+    console.log('Titles ', titles)
+    return res.send(songs)
+  })
 }
 
 exports.addSong = (req, res) => {
-  console.log('body: ', req.body)
   var song = req.body.song;
   var title = song.title;
-  var artists = req.body.artists;
+  // var artists = req.body.data.artists;
+  var yid = song.yid;
   var albumName = song.album;
   var albumId = song.albumId;
+  var key = song.audioAnalysis.key;
+  var tempo = song.audioAnalysis.tempo;
+  var duration = song.audioAnalysis.duration;
+  var spid = song.id;
+  var thumbnail = song.albumDetails.thumbnail;
+  var released = song.albumDetails.releaseDate;
+
+  var rg = song.rg;
+  var rgid = rg.rgid;
+  var collabs = rg.allCollaborators;
+  var recording_location = collabs.recording_location;
+  var rgPrimary = [collabs.primaryArtist]
+  var rgProducers = collabs.producerArtists;
+  rgProducers.forEach(p => {p['role'] = 'producer'})
+  var rgFeatured = collabs.featuredArtists;
+  var initialOther = collabs.otherArtists;
+  var rgOther = initialOther.reduce((acc, curr) => {
+    var temp = curr.artists.map(a => {a['role'] = curr.label; return a})
+    acc = acc.concat(curr.artists);
+    return acc;
+  }, [])
+  var vocals = rgPrimary.concat(rgFeatured);
+  vocals.forEach(v => {v['role'] = 'vocals'})
+  var vocalNames = vocals.reduce((acc, curr) => {acc.push(curr.name); return acc;},[]);
+  var producerNames = rgProducers.reduce((acc, curr) => {acc.push(curr.name); return acc;},[]);
+  var otherNames = rgOther.reduce((acc, curr) => {acc.push(curr.name); return acc;},[]);
+  var allArtists = vocals.concat(rgProducers).concat(rgOther);
+  var allArtistsNames = vocalNames.concat(producerNames).concat(otherNames)
+
   var allSections = song.audioAnalysis.sections;
   var start = allSections[0];
   var till = start.duration - start.start;
@@ -72,10 +151,23 @@ exports.addSong = (req, res) => {
     if(!check) {
       return Song.create({
         title,
-        artists,
+        vocals: vocalNames,
+        producers: producerNames,
+        engineers: otherNames,
+        artists: allArtistsNames,
         albumName,
         albumId,
-        vibe: avgVibe
+        vibe: avgVibe,
+        key,
+        cutoff: till,
+        tempo,
+        spid,
+        duration,
+        thumbnail,
+        released,
+        yid,
+        rgid,
+        recording_location
       })
       .then((newSong) => {
         var songId = newSong.dataValues.id;
@@ -83,10 +175,12 @@ exports.addSong = (req, res) => {
         .then((addedSections) => {
           return Promise.all(allSegs.map(g => addSegment(g, songId)))
           .then((addedSegs) => {
-            res.send(newSong)
+            return Promise.all(allArtists.map(addArtist))
+            .then((addedArts) => {
+              res.send(newSong)
+            })
           })
         })
-        res.send('ok')
       })
     } else {
       res.send(check)
@@ -94,6 +188,29 @@ exports.addSong = (req, res) => {
   })
   res.send('ok')
 };
+
+const addArtist = (artist) => {
+  return Artist.findOne({where:{name: artist.name}})
+  .then((art) => {
+    if(!art || art === null) {
+      // return wiki().search(title)
+      //   .then(data => {
+      //     // console.log('wiki search: ', data.results)
+      //     return wiki().page(data.results[0])
+      //     .then(res => {
+      //       var resFromWiki = res;
+      //       return resFromWiki.summary()
+      //       .then((sum) => sum)
+      //     })
+      //   })
+      return Artist.create({
+        name: artist.name,
+        role: artist.role,
+        rgid: artist.rgid
+      })
+    }
+  })
+}
 
 const addSection = (sec, songId) => {
   return Section.create({

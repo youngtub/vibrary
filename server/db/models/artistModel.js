@@ -6,7 +6,8 @@ const Artist = inthestudio.define('artist', {
   role: Sequelize.STRING,
   age: Sequelize.INTEGER,
   yearsActive: Sequelize.ARRAY(Sequelize.INTEGER),
-  wiki: Sequelize.STRING
+  wiki: Sequelize.STRING,
+  rgid: Sequelize.STRING
 });
 
 Artist.sync({force: false});

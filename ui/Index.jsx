@@ -9,6 +9,7 @@ import { persistStore, autoRehydrate } from 'redux-persist';
 import App from './components/App.jsx';
 import rootReducer from './reducers';
 
+const dotenv = require('dotenv').config()
 const history = createHistory();
 const historyMiddleware = routerMiddleware(history);
 

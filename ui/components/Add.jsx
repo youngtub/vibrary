@@ -2,13 +2,15 @@ import React from 'react';
 import {Grid, Row, Col} from 'react-bootstrap';
 import {Input, Button} from 'semantic-ui-react';
 import axios from 'axios';
+import {DebounceInput} from 'react-debounce-input';
 
 class Add extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       q: '',
-      sugs: []
+      sugs: [],
+      added: []
     }
   }
 
@@ -26,6 +28,9 @@ class Add extends React.Component {
   };
 
   selectSong = (song) => {
+    var newCheck = this.state.added.slice();
+    newCheck.push(song.title)
+    this.setState({added:newCheck})
     let id = song.id;
     var params = {id}
     axios.get('/api/songLookup', {params})
@@ -34,19 +39,24 @@ class Add extends React.Component {
       var newSong = res.data.data.song;
       var body = {
         song: newSong,
-        artists: song.artists
+        data: song
       }
       axios.post('/api/db/newSong', body)
       .then((resp) => {
         console.log('resp from new song: ', resp.data)
       })
     })
+  };
+
+  iconSelect = (title) => {
+    if(this.state.added.includes(title)) return 'checkmark'
+    return 'plus square outline'
   }
 
   render() {
     return (
       <Grid fluid={true}>
-        <Input value={this.state.q} onChange={this.handleChange} placeholder='search' />
+        <DebounceInput minLength={3} debounceTimeout={500} value={this.state.q} onChange={this.handleChange} placeholder='search' />
         <br/><br/>
         {this.state.sugs.length > 0 ? (
           this.state.sugs.map((item, i) => (
@@ -57,7 +67,7 @@ class Add extends React.Component {
                 {item.attr !== 'artist' ? item.artists.join(',') : ''}
               </Col>
               <Col md={4}>
-                <Button icon='plus square outline' onClick={()=>this.selectSong(item)} />
+                <Button icon={this.iconSelect(item.title)} onClick={()=>this.selectSong(item)} />
               </Col>
               <br/><br/><br/>
             </Row>
