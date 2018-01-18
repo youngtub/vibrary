@@ -12,6 +12,7 @@ import {Button} from 'semantic-ui-react';
 import Add from './Add.jsx';
 import Browse from './Browse.jsx';
 import Panel from './Panel.jsx';
+import Explore from './Explore.jsx';
 
 class App extends React.Component {
   constructor(props) {
@@ -28,22 +29,27 @@ class App extends React.Component {
   render() {
     return (
       <Grid fluid={true}>
-        <Row>
-          <Col md={10}>
-            <h2>Vibrary</h2>
+        <Row id='header'>
+          <Row>
+          <Col md={9}>
+            <h1 id='banner'>Vibrary</h1>
           </Col>
-          <Col md={2} style={navStyle}>
+          <Col md={3} style={navStyle}>
             <br/>
             <Button href='/add'>Add</Button>
             <Button href='/browse'>Browse</Button>
+            <Button href='/explore'>Explore</Button>
           </Col>
+          </Row>
+          <br/><br/>
         </Row>
         <hr/>
-        <Row>
+        <Row id='main'>
           <Col md={9}>
             <Switch>
               <Route exact path = '/add' component={Add}/>
               <Route exact path = '/browse' component={Browse} />
+              <Route exact path = '/explore' component={Explore} />
             </Switch>
           </Col>
           <Col md={3}>
@@ -56,7 +62,8 @@ class App extends React.Component {
 }
 
 const navStyle = {
-  float: 'right'
+  float: 'right',
+  padding: '10px'
 }
 
 const mapStateToProps = (state) => ({

@@ -8,6 +8,44 @@ const Segment = require('../db/models/segmentModel.js');
 const Artist = require('../db/models/artistModel.js');
 const PCA = require('ml-pca');
 
+exports.explore = (req, res) => {
+  return Song.findAll({})
+  .then((allSongs) => {
+    var all = allSongs.reduce((acc, curr) => {acc.push(curr.dataValues); return acc;}, [])
+    var allVibes = allSongs.reduce((acc, curr) => {acc.push(curr.dataValues.vibe); return acc;}, [])
+    var pca = new PCA(allVibes);
+    var pcaVibes = pca.predict(allVibes);
+    console.log('PCA: ', pcaVibes);
+    all.forEach((s, i) => s['pcaVibe'] = pcaVibes[i])
+    var nodes = all;
+
+    var maxDel = 0;
+    var dels = []
+
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i+1; j < nodes.length; j++) {
+        var totalDev = 0;
+        for (let k = 0; k < 12; k++) {
+          var currDev = Math.abs(nodes[i].pcaVibe[k] - nodes[j].pcaVibe[k])
+          totalDev += currDev;
+        }
+        if(totalDev > maxDel) maxDel = totalDev
+        var delObj = {
+          source: nodes[i].title, target: nodes[j].title, del: totalDev
+        };
+        dels.push(delObj)
+      }
+    }
+
+    var links = dels.map(obj => {
+      obj['value'] = Math.floor((1 - obj.del / maxDel)*100);
+      return obj;
+    })
+    var respObj = {nodes, links}
+    res.send(respObj)
+  })
+}
+
 exports.similarVibePCA = (req, res) => {
   var title = req.query.title;
   var mainSong;

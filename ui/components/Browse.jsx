@@ -53,6 +53,15 @@ class Browse extends React.Component {
       var match = res.data;
       this.setState({match}, () => {this.props.actions.selected({song: selected})})
     })
+  };
+
+  songDisplay = (song) => {
+    var obj = {marginLeft: '2%'};
+    var border = `solid 2px ${colors[song.key]}`
+    obj['border'] = border;
+    obj['borderRadius'] = '5px';
+    obj['maxWidth'] = '80%'
+    return obj;
   }
 
   render() {
@@ -67,8 +76,8 @@ class Browse extends React.Component {
           <br/><br/>
           <Row>
             {this.state.songs.map((song, i) => (
-              <Row>
-                <Button onClick={()=>this.selectSong(song)} style={songDisplay}>
+              <Row key={i}>
+                <Button onClick={()=>this.selectSong(song)} style={this.songDisplay(song)}>
                   {song.title + ' - ' + song.vocals.join(', ') + ' (prod. ' + song.producers.join(', ') + ')'}
                 </Button>
                 <br/><br/>
@@ -91,8 +100,8 @@ class Browse extends React.Component {
               </h3>
             <Row>
               {this.state.match.map((song, i) => (
-                <Row>
-                <Button style={songDisplay}>
+                <Row key={i}>
+                <Button style={this.songDisplay(song)}>
                   {song.title + ' - ' + song.vocals.join(', ') + ' (prod. ' + song.producers.join(', ') + ')' + ' - ' + song.percDev + '%'}
                 </Button>
                 <br/><br/>

@@ -564,7 +564,7 @@ const axiosConfigForRapGenius = {
 
 const config = {
   headers: {
-    'Authorization' : 'Bearer BQCmy1hWApCwuiSm9ILbWpL7tnrMG2iHow3k4McpRuljyxFpWW-dP7LqQtez4aRFk-lwwzhMOsYT1JSYXwY'
+    'Authorization' : 'Bearer BQCYREEepndxq0xhSRB8KKFCpfvMoHMt-jKxTRig6xkooNs054A101XmpvM4hLDNYuI4FcEn6R4OwkBWFjY'
   }
 }
 
