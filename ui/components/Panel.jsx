@@ -57,7 +57,31 @@ class Panel extends React.Component {
         </div>
         <h3>
           {this.props.selected.song ? (
-            this.props.selected.song.producers.join(', ') + ' - ' + this.props.selected.song.title + ' (' + this.props.selected.song.vocals.join(', ') + ')'
+            <Row>
+              <h2 className='center'>
+                {this.props.selected.song.title}
+              </h2>
+
+              <Row className='center'>
+                <a className='browseMainTitle'>Vocals: </a>
+                {this.props.selected.song.vocals.map((v, i) => (
+                  <span>
+                  <a className='browseMainTitle' onClick={()=>this.searchArtist(v)}>{v}</a>
+                  {i+1 < this.props.selected.song.vocals.length ? <a className='browseMainTitle'>{', '}</a> : ''}
+                  </span>
+                ))}
+              </Row>
+              <br/>
+              <Row className='center'>
+                <a className='browseMainTitle'>Production: </a>
+                {this.props.selected.song.producers.map((p, i) => (
+                  <span>
+                  <a className='browseMainTitle' onClick={()=>this.searchArtist(v)}>{p}</a>
+                  {i+1 < this.props.selected.song.producers.length ? <a className='browseMainTitle'>{', '}</a> : ''}
+                  </span>
+                ))}
+              </Row>
+            </Row>
         ) : 'Frank Dukes, Murda Beatz - Built My Legacy (Kodak Black, Offset)'}
       </h3>
 

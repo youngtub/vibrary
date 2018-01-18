@@ -62,6 +62,19 @@ class Browse extends React.Component {
     obj['borderRadius'] = '5px';
     obj['maxWidth'] = '80%'
     return obj;
+  };
+
+  searchArtist = (name) => {
+    let q = name.toLowerCase();
+    var filtered = this.state.library.filter(song => {
+      var flag = false;
+      if (song.title.toLowerCase().includes(q)) flag = true;
+      song.artists.forEach(art => {
+        if(art.toLowerCase().includes(q)) flag = true
+      })
+      return flag
+    })
+    this.setState({q, songs: filtered})
   }
 
   render() {
@@ -95,9 +108,30 @@ class Browse extends React.Component {
           {this.props.selected.song ? (
             <Row>
 
-              <h3 className='center'>
-                {this.props.selected.song.title + ' - ' + this.props.selected.song.vocals.join(', ') + ' (prod. ' + this.props.selected.song.producers.join(', ') + ')'}
-              </h3>
+              <h2 className='center'>
+                {this.props.selected.song.title}
+              </h2>
+
+              <Row className='center'>
+                <a className='browseMainTitle noHover'>Vocals: </a>
+                {this.props.selected.song.vocals.map((v, i) => (
+                  <span>
+                  <a className='browseMainTitle' onClick={()=>this.searchArtist(v)}>{v}</a>
+                  {i+1 < this.props.selected.song.vocals.length ? <a className='browseMainTitle'>{', '}</a> : ''}
+                  </span>
+                ))}
+              </Row>
+              <br/>
+              <Row className='center'>
+                <a className='browseMainTitle noHover'>Production: </a>
+                {this.props.selected.song.producers.map((p, i) => (
+                  <span>
+                  <a className='browseMainTitle' onClick={()=>this.searchArtist(p)}>{p}</a>
+                  {i+1 < this.props.selected.song.producers.length ? <a className='browseMainTitle'>{', '}</a> : ''}
+                  </span>
+                ))}
+              </Row>
+              <hr/>
             <Row>
               {this.state.match.map((song, i) => (
                 <Row key={i}>
