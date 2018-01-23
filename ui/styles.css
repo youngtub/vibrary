@@ -18,6 +18,15 @@ body {
   text-align: center;
 }
 
+.landingText {
+  font-size: 1.3em;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
 .noHover:hover {
   text-decoration: none;
   color: black;

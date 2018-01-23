@@ -13,6 +13,7 @@ import Add from './Add.jsx';
 import Browse from './Browse.jsx';
 import Panel from './Panel.jsx';
 import Explore from './Explore.jsx';
+import Landing from './Landing.jsx';
 
 class App extends React.Component {
   constructor(props) {
@@ -32,7 +33,9 @@ class App extends React.Component {
         <Row id='header'>
           <Row>
           <Col md={9}>
-            <h1 id='banner'>Vibrary</h1>
+            <a href='/'>
+              <h1 id='banner'>Vibrary</h1>
+            </a>
           </Col>
           <Col md={3} style={navStyle}>
             <br/>
@@ -47,6 +50,7 @@ class App extends React.Component {
         <Row id='main'>
           <Col md={9} sm={9} xs={9}>
             <Switch>
+              <Route exact path = '/' component={Landing} />
               <Route exact path = '/add' component={Add}/>
               <Route exact path = '/browse' component={Browse} />
               <Route exact path = '/explore' component={Explore} />
