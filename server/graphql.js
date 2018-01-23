@@ -1,4 +1,5 @@
 const axios = require('axios');
+const Promise = require('bluebird');
 
 const {
   GraphQLObjectType,
@@ -225,15 +226,23 @@ const LimitedSongType = new GraphQLObjectType({
       type: SPAudioFeatures,
       resolve: track => {
         var trackId = track.id;
-        return axios.get(`https://api.spotify.com/v1/audio-features/${trackId}`, config)
-        .then((track) => track.data)
+        return Promise.resolve(config())
+        .then((conf) => {
+          return axios.get(`https://api.spotify.com/v1/audio-features/${trackId}`, conf)
+          .then((track) => track.data)
+        })
       }
     },
     audioAnalysis: {
       type: AudioAnalysisType,
-      resolve: track => {return axios.get(`https://api.spotify.com/v1/audio-analysis/${track.id}`, config)
-      .then((res) => res.data)
-      .catch((err) => console.log('ERROR', err))}
+      resolve: track => {
+        return Promise.resolve(config())
+        .then((conf) => {
+          return axios.get(`https://api.spotify.com/v1/audio-analysis/${track.id}`, conf)
+          .then((res) => res.data)
+          .catch((err) => console.log('ERROR', err))
+        })
+      }
     }
   }
 })
@@ -374,9 +383,12 @@ const SPSongType = new GraphQLObjectType({
     albumDetails: {
       type: LimitedAlbumDetailsType,
       resolve: track => {
-        return axios.get(`https://api.spotify.com/v1/albums/${track.album.id}`, config)
-        .then((res) => {
-          return res.data
+        return Promise.resolve(config())
+        .then((conf) => {
+          return axios.get(`https://api.spotify.com/v1/albums/${track.album.id}`, conf)
+          .then((res) => {
+            return res.data
+          })
         })
       }
     },
@@ -384,15 +396,23 @@ const SPSongType = new GraphQLObjectType({
       type: SPAudioFeatures,
       resolve: track => {
         var trackId = track.id;
-        return axios.get(`https://api.spotify.com/v1/audio-features/${trackId}`, config)
-        .then((track) => track.data)
+        return Promise.resolve(config())
+        .then((conf) => {
+          return axios.get(`https://api.spotify.com/v1/audio-features/${trackId}`, conf)
+          .then((track) => track.data)
+        })
       }
     },
     audioAnalysis: {
       type: AudioAnalysisType,
-      resolve: track => {return axios.get(`https://api.spotify.com/v1/audio-analysis/${track.id}`, config)
-      .then((res) => res.data)
-      .catch((err) => console.log('ERROR', err))}
+      resolve: track => {
+        return Promise.resolve(config())
+        .then((conf) => {
+          return axios.get(`https://api.spotify.com/v1/audio-analysis/${track.id}`, conf)
+          .then((res) => res.data)
+          .catch((err) => console.log('ERROR', err))
+        })
+      }
     },
     yid: {
       type: GraphQLString,
@@ -565,21 +585,34 @@ const axiosConfigForRapGenius = {
   }
 }
 
-const config = {
+const config_ = {
   headers: {
-    'Authorization' : 'Bearer BQABSHIdVsity4rTPjTcVxpb-tzLu6GMaiOVwRYBhGi2z1j-tb6or0fvEK2Bm4Z5ycDqBOY7mho89YcscIU'
+    'Authorization' : 'Bearer BQDTMiez_3nZhIDSo3045Id3zVZPOGzoAJoSKuV5OCmcfxhZmVAuCqjgxIHxhKmwB6XN1PrO0BGfsJzEA6I'
   }
 }
 
-const authConfig = {
-  "grant_type": "client_credentials",
-  "headers": {
-    "Authorization": "Basic MGIzNzNkY2ZmOGZmNGRiMDllYTkwOWE2YWY0NWZjNzM6YWYyOTYxZThjZjU1NGMxYWI3ZTEwYWRlZWZkOGI4ZjM="
-  }
-}
-
-const getAccessToken = () => {
-  return axios.post(`https://accounts.spotify.com/api/token`, authConfig)
+const config = () => {
+  console.log('key: ', process.env.B64Spotify)
+  var req = {
+    method:'POST',
+    url: 'https://accounts.spotify.com/api/token',
+    data: 'grant_type=client_credentials',
+    headers: {
+      'Authorization': `Basic ${'MGIzNzNkY2ZmOGZmNGRiMDllYTkwOWE2YWY0NWZjNzM6YWYyOTYxZThjZjU1NGMxYWI3ZTEwYWRlZWZkOGI4ZjM='}`
+    },
+    json: true
+  };
+  return axios(req)
+  .then((res) => {
+    console.log('Token: ', res.data.access_token)
+    var final = {
+      headers: {
+        'Authorization' : `Bearer ${res.data.access_token}`
+      }
+    }
+    return final
+  })
+  .catch((err) => console.log('spot token error: ', err))
 }
 
 module.exports = new GraphQLSchema({
@@ -587,37 +620,42 @@ module.exports = new GraphQLSchema({
     name: 'SpotifyArtist',
     description: '...',
     fields: () => ({
-      artist: {
-        type: ArtistType,
-        args: {
-          name: {type: GraphQLString}
-        },
-        resolve: (root, args) => {
-          return axios.get(`https://api.spotify.com/v1/search?q=${args.name}&type=artist`, config)
-        }
-      },
-      album: {
-        type: SPAlbumType,
-        args: {
-          id: {type: GraphQLString}
-        },
-        resolve: (root, args) => {
-          return axios.get(`https://api.spotify.com/v1/albums/${args.id}`, config)
-          .then((res) => {
-            return res.data
-          })
-        }
-      },
+      // artist: {
+      //   type: ArtistType,
+      //   args: {
+      //     name: {type: GraphQLString}
+      //   },
+      //   resolve: (root, args) => {
+      //     return axios.get(`https://api.spotify.com/v1/search?q=${args.name}&type=artist`, config())
+      //   }
+      // },
+      // album: {
+      //   type: SPAlbumType,
+      //   args: {
+      //     id: {type: GraphQLString}
+      //   },
+      //   resolve: (root, args) => {
+      //     return axios.get(`https://api.spotify.com/v1/albums/${args.id}`, config())
+      //     .then((res) => {
+      //       return res.data
+      //     })
+      //   }
+      // },
       song: {
         type: SPSongType,
         args: {
           id: {type: GraphQLString}
         },
         resolve: (root, args) => {
-          return axios.get(`https://api.spotify.com/v1/tracks/${args.id}`, config)
-          .then((res) => {
-            // console.log('song data: ', res.data)
-            return res.data
+          return Promise.resolve(config())
+          .then((conf) => {
+            console.log('Config for Song: ', conf)
+            return axios.get(`https://api.spotify.com/v1/tracks/${args.id}`, conf)
+            .then((res) => {
+              // console.log('song data: ', res.data)
+              return res.data
+            })
+            .catch((err) => console.log('err getting song data: ', err))
           })
         }
       },
@@ -629,17 +667,20 @@ module.exports = new GraphQLSchema({
           }
         },
         resolve: (root, args) => {
-          return axios.get(`https://api.spotify.com/v1/search?q=${args.q}&type=track,artist&limit=15`, config)
-          .then((res) => {
-            var songs = res.data.tracks.items;
-            // var albums = res.data.albums.items;
-            var artists = res.data.artists.items;
-            songs.forEach(song => song['attr'] = 'song');
-            // albums.forEach(alb => alb['attr'] = 'album')
-            artists.forEach(art => art['attr'] = 'artist')
-            var output = songs.concat(artists)
-            // .concat(albums);
-            return output
+          return Promise.resolve(config())
+          .then((conf) => {
+            return axios.get(`https://api.spotify.com/v1/search?q=${args.q}&type=track,artist&limit=15`, conf)
+            .then((res) => {
+              var songs = res.data.tracks.items;
+              // var albums = res.data.albums.items;
+              var artists = res.data.artists.items;
+              songs.forEach(song => song['attr'] = 'song');
+              // albums.forEach(alb => alb['attr'] = 'album')
+              artists.forEach(art => art['attr'] = 'artist')
+              var output = songs.concat(artists)
+              // .concat(albums);
+              return output
+            })
           })
         }
       }
