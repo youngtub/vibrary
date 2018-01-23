@@ -15,17 +15,49 @@ class Explore extends React.Component {
     super(props);
     this.state = {
       nodes: [],
-      links: []
+      links: [],
+      initial: true,
+      sugs: [],
+      q: ''
     }
   }
 
-  componentWillMount = () => {
-    axios.get('/api/db/explore')
+  getAllNodes = () => {
+    axios.get('/api/db/explore_all')
     .then((res) => {
       console.log('res from explore: ', res.data)
       var nodes = res.data.nodes;
       var links = res.data.links
       this.setState({nodes, links}, this.generateChart)
+    })
+  };
+
+  exploreSong = (song) => {
+    var title = song.title;
+    var params = {title}
+    axios.get('/api/db/explore_song', {params})
+    .then((res) => {
+      console.log('res from explore song: ', res.data);
+      var nodes = res.data.nodes;
+      var links = res.data.links;
+      var initial = false;
+      this.props.actions.selected({song})
+      this.setState({nodes, links, initial}, this.generateChart)
+    })
+  };
+
+  handleChange = (e, q) => {
+    console.log('q: ', q)
+    this.setState({q: e.target.value}, this.fetchAutocomplete)
+  };
+
+  fetchAutocomplete = () => {
+    var title = this.state.q;
+    var params = {title};
+    axios.get('/api/db/autocomplete', {params})
+    .then((res) => {
+      var sugs = res.data;
+      this.setState({sugs})
     })
   }
 
@@ -39,16 +71,16 @@ class Explore extends React.Component {
     // *modesConfig[currMode].circleMultiple;
     var center = [width/2, height/2.35];
 
-    var linkDistance = circleSize*9;
+    var linkDistance = circleSize*10;
     var sim = d3.forceSimulation(this.state.nodes)
     .force("link", d3.forceLink(this.state.links)
       .id(d => d.title)
       .distance((d) => d.value > 0 ? linkDistance/(d.value) : linkDistance))
-    .force("charge", d3.forceManyBody().strength(-200))
+    .force("charge", d3.forceManyBody().strength(-250))
     .force("center", d3.forceCenter(center[0], center[1]))
-    .force("gravity", d3.forceManyBody().strength(-200))
+    .force("gravity", d3.forceManyBody().strength(-250))
     .force('collision', d3.forceCollide()
-      .radius(d=>circleSize*3)
+      .radius(d=>circleSize*4)
       // .strength(d => 0.1)
     )
     .force("size", d3.forceManyBody([width, height]));
@@ -129,9 +161,21 @@ class Explore extends React.Component {
   render() {
     return (
       <Grid fluid={true} id='vizContainer'>
-        <Row id='canvas'>
-
-        </Row>
+        <Row id='canvas'></Row>
+        {this.state.initial ? (
+          <Row>
+            <Input value={this.state.q} onChange={this.handleChange} placeholder='Song' />
+            <hr/>
+            {this.state.sugs.length > 0 ? (
+              this.state.sugs.map((sug, i) => (
+                <Row>
+                  <Button content={sug.title} key={i} onClick={()=>this.exploreSong(sug)} />
+                  <br/>
+                </Row>
+              ))
+            ) : ''}
+          </Row>
+        ) : ''}
       </Grid>
     )
   }

@@ -1,6 +1,6 @@
 import React from 'react';
 import {Grid, Row, Col} from 'react-bootstrap';
-import {Input, Button} from 'semantic-ui-react';
+import {Input, Button, Popup} from 'semantic-ui-react';
 import axios from 'axios';
 
 import { connect, Provider } from 'react-redux';
@@ -81,7 +81,7 @@ class Browse extends React.Component {
     return (
       <Grid fluid={true}>
         <br/>
-        <Col md={6}>
+        <Col md={6} sm={6} xs={6}>
           <Row>
             <h3 className='center'>Library</h3>
             <Input value={this.state.q} onChange={this.handleChange} placeholder='search' />
@@ -99,7 +99,7 @@ class Browse extends React.Component {
             <br/>
           </Row>
         </Col>
-        <Col md={6}>
+        <Col md={6} sm={6} xs={6}>
           <Row>
             <h3 className='center'>Vibe Match</h3>
           </Row>
@@ -135,9 +135,21 @@ class Browse extends React.Component {
             <Row>
               {this.state.match.map((song, i) => (
                 <Row key={i}>
-                <Button style={this.songDisplay(song)}>
-                  {song.title + ' - ' + song.vocals.join(', ') + ' (prod. ' + song.producers.join(', ') + ')' + ' - ' + song.percDev + '%'}
-                </Button>
+                  <Popup
+                    trigger={
+                      <Button style={this.songDisplay(song)}>
+                        {song.title + ' - ' + song.vocals.join(', ') + ' (prod. ' + song.producers.join(', ') + ')' + ' - ' + song.percDev + '%'}
+                      </Button>
+                    }
+                    content={
+                      <Row>
+                        <Button icon='connectdevelop' onClick={()=>this.selectSong(song)} content='Connections' labelPosition='right' color='blue'/>
+                        <br/>
+                        <Button icon='music' onClick={()=>this.selectSong(song)} content='Listen' labelPosition='right'/>
+                      </Row>
+                    }
+                    on='click'
+                    />
                 <br/><br/>
                 </Row>
               ))}

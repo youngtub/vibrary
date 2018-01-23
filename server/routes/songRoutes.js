@@ -10,7 +10,77 @@ const Collab = require('../db/models/collabModel.js');
 const Album = require('../db/models/albumModel.js');
 const PCA = require('ml-pca');
 
-exports.explore = (req, res) => {
+exports.exploreSong = (req, res) => {
+  var title = req.query.title;
+  var mainSong;
+  return Song.findOne({where:{title}})
+  .then((theSong) => {
+    var selVibe = theSong.dataValues.vibe;
+    mainSong = theSong.dataValues;
+    return Song.findAll({
+      where: {
+        title: {
+          [Op.not]: title
+        }
+      }
+    })
+    .then((allS) => {
+      var all = allS.reduce((acc, curr) => {acc.push(curr.dataValues); return acc;}, [])
+      var allVibes = allS.reduce((acc, curr) => {acc.push(curr.dataValues.vibe); return acc;}, [])
+      var pcaVibes = new PCA(allVibes);
+      allVibes.unshift(selVibe);
+      var variance = pcaVibes.predict(allVibes);
+      console.log('variance: ', variance.length);
+      var mainVec = variance.shift();
+      mainSong['vec'] = mainVec;
+      var maxDel = 0;
+      variance.forEach((vec, i) => {
+        var totalDev = 0;
+        for (let i = 0; i < 12; i++) {
+          var currDev = Math.abs(mainVec[i] - vec[i])
+          totalDev += currDev;
+        }
+        all[i]['vec'] = vec;
+        all[i]['del'] = totalDev;
+        if(totalDev > maxDel) maxDel = totalDev
+      })
+      all.forEach(s => {
+        s['percDev'] = Math.floor((1 - s.del / maxDel)*100);
+      })
+      all.sort((a, b) => a.del - b.del)
+      // have percDev between main and all others
+      var simSongs = all.slice(0, 13);
+      var interLinks = [];
+      var maxInterDel = 0;
+
+      simSongs.forEach((song, n) => {
+        for (let i = n+1; i < simSongs.length; i++) {
+          let tempLinkObj = {source: song.title, target: simSongs[i].title};
+          var sumDev = 0;
+          for (let j = 0; j < 12; j++) {
+            var currDev = Math.abs(variance[n][j] - variance[i][j])
+            sumDev += currDev;
+          }
+          tempLinkObj['raw'] = sumDev;
+          interLinks.push(tempLinkObj)
+          if(sumDev > maxInterDel) maxInterDel = sumDev;
+        }
+      })
+      interLinks.forEach(link => link['value'] = Math.floor((1 - link.raw / maxInterDel)*100))
+
+      var mainLinks = simSongs.map((s, n) => {
+        let tempLinkObj = {source: mainSong.title, target: s.title, value: s.percDev};
+        return tempLinkObj;
+      });
+      var links = mainLinks.concat(interLinks);
+      var nodes = simSongs.concat(mainSong);
+      var respObj = {links, nodes};
+      res.send(respObj)
+    })
+  })
+};
+
+exports.exploreAll = (req, res) => {
   return Song.findAll({})
   .then((allSongs) => {
     var all = allSongs.reduce((acc, curr) => {acc.push(curr.dataValues); return acc;}, [])
@@ -123,6 +193,19 @@ exports.similarVibe = (req, res) => {
       // console.log('ALL: ', all)
       res.send(all)
     })
+  })
+};
+
+exports.autocomplete = (req, res) => {
+  return Song.findAll({
+    where: {
+      title: {
+        [Op.iLike]: `${req.query.title}%`
+      }
+    }
+  })
+  .then((matches) => {
+    res.send(matches)
   })
 }
 

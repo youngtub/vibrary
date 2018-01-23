@@ -12,8 +12,12 @@ router.post('/newSong', songRoutes.addSong);
 
 router.get('/allSongs', songRoutes.allSongs);
 
+router.get('/autocomplete', songRoutes.autocomplete)
+
 router.get('/similarVibe', songRoutes.similarVibePCA);
 
-router.get('/explore', songRoutes.explore)
+router.get('/explore_all', songRoutes.exploreAll)
+
+router.get('/explore_song', songRoutes.exploreSong)
 
 module.exports = router;

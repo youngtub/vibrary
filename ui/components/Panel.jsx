@@ -43,6 +43,8 @@ class Panel extends React.Component {
     return (
       <Grid fluid={true}>
         <div style={playerContainer}>
+          <h2 className='center'>Listen</h2>
+          <hr/>
           <Player url={this.props.selected.song ? 'https://www.youtube.com/watch?v=' + this.props.selected.song.yid : 'https://www.youtube.com/watch?v=XhlZqtpB5Us'} style={playerStyle}
             onProgress={this.checkProgress} progressFrequency={400}
             onReady={()=>console.log('Ready')}

@@ -45,14 +45,14 @@ class App extends React.Component {
         </Row>
         <hr/>
         <Row id='main'>
-          <Col md={9}>
+          <Col md={9} sm={9} xs={9}>
             <Switch>
               <Route exact path = '/add' component={Add}/>
               <Route exact path = '/browse' component={Browse} />
               <Route exact path = '/explore' component={Explore} />
             </Switch>
           </Col>
-          <Col md={3}>
+          <Col md={3} sm={3} xs={3}>
             <Panel selected={this.props.selected} />
           </Col>
         </Row>
